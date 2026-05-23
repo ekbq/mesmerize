@@ -1,278 +1,401 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#000000" />
-  <meta name="description" content="Mesmerize - looping animations. Swipe to explore." />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#000000" />
+<meta name="description" content="Mesmerize - looping animations. Swipe to explore." />
 
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Mesmerize" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
+<!-- PWA -->
+<link rel="manifest" href="manifest.json" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Mesmerize" />
+<link rel="apple-touch-icon" href="icon-192.png" />
 
-  <title>Mesmerize</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<title>Mesmerize</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --dur: 380ms;
-      --ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
+:root {
+--dur: 380ms;
+--ease: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
 
-    html, body {
-      width: 100%; height: 100%;
-      background: #000;
-      overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: none;
-      user-select: none;
-    }
+html, body {
+width: 100%; height: 100%;
+background: #000;
+overflow: hidden;
+font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+-webkit-tap-highlight-color: transparent;
+touch-action: none;
+user-select: none;
+}
 
-    /* ── Skip link ── */
-    .skip {
-      position: absolute; top: -100%; left: 50%;
-      transform: translateX(-50%);
-      background: #fff; color: #000;
-      padding: .6rem 1.4rem; border-radius: 0 0 .5rem .5rem;
-      font-size: .95rem; font-weight: 600;
-      z-index: 9999; text-decoration: none;
-      transition: top .15s;
-    }
-    .skip:focus { top: 0; }
+/* ── Skip link ── */
+.skip {
+position: absolute; top: -100%; left: 50%;
+transform: translateX(-50%);
+background: #fff; color: #000;
+padding: .6rem 1.4rem; border-radius: 0 0 .5rem .5rem;
+font-size: .95rem; font-weight: 600;
+z-index: 9999; text-decoration: none;
+transition: top .15s;
+}
+.skip:focus { top: 0; }
 
-    /* ── SR live region ── */
-    #live {
-      position: absolute; width: 1px; height: 1px;
-      overflow: hidden; clip: rect(0,0,0,0);
-      white-space: nowrap;
-    }
+/* ── SR live region ── */
+#live {
+position: absolute; width: 1px; height: 1px;
+overflow: hidden; clip: rect(0,0,0,0);
+white-space: nowrap;
+}
 
-    /* ── Category picker screen ── */
-    #picker {
-      position: fixed; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      background: #000;
-      z-index: 500;
-      padding: 2rem 1.5rem;
-      gap: 2rem;
-      transition: opacity .4s ease;
-    }
-    #picker.gone { opacity: 0; pointer-events: none; }
+/* ── Password gate ── */
+#pw-gate {
+position: fixed; inset: 0;
+display: flex; flex-direction: column;
+align-items: center; justify-content: center;
+background: #000;
+z-index: 10000;
+gap: 2rem;
+transition: opacity .5s ease;
+}
+#pw-gate.gone { opacity: 0; pointer-events: none; }
 
-    #picker h1 {
-      color: #fff;
-      font-size: 1.4rem;
-      font-weight: 300;
-      letter-spacing: .3em;
-      text-transform: uppercase;
-    }
+#pw-gate h1 {
+color: #fff;
+font-size: 1.4rem;
+font-weight: 300;
+letter-spacing: .3em;
+text-transform: uppercase;
+}
 
-    #cat-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: .75rem;
-      justify-content: center;
-      max-width: 360px;
-      overflow-y: auto;
-      max-height: 70vh;
-      padding: .25rem;
-    }
+#pw-gate p {
+color: rgba(255,255,255,.4);
+font-size: .78rem;
+letter-spacing: .12em;
+text-transform: uppercase;
+}
 
-    .cat-btn {
-      padding: .65rem 1.3rem;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.25);
-      background: rgba(255,255,255,.07);
-      color: #fff;
-      font-size: .85rem;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: background .2s, border-color .2s, transform .1s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .cat-btn:active { transform: scale(.95); }
-    .cat-btn:hover  { background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.5); }
+/* Dot display */
+#pw-dots {
+display: flex;
+gap: 1rem;
+}
+.pw-dot {
+width: .9rem; height: .9rem;
+border-radius: 50%;
+border: 1.5px solid rgba(255,255,255,.35);
+background: transparent;
+transition: background .15s, border-color .15s;
+}
+.pw-dot.filled {
+background: #fff;
+border-color: #fff;
+}
 
-    /* ── Stage ── */
-    #stage {
-      position: fixed; inset: 0;
-    }
+/* Shake animation for wrong code */
+@keyframes shake {
+0%, 100% { transform: translateX(0); }
+15%        { transform: translateX(-10px); }
+30%        { transform: translateX(10px); }
+45%        { transform: translateX(-8px); }
+60%        { transform: translateX(8px); }
+75%        { transform: translateX(-4px); }
+90%        { transform: translateX(4px); }
+}
+#pw-dots.shake { animation: shake .5s ease; }
 
-    /* ── Slides ── */
-    .slide {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      background: #000;
-      will-change: transform, opacity;
-      transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
-    }
-    .slide.no-transition { transition: none !important; }
+/* Numpad */
+#numpad {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: .65rem;
+}
+.num-btn {
+width: 4.2rem; height: 4.2rem;
+border-radius: 50%;
+border: 1px solid rgba(255,255,255,.18);
+background: rgba(255,255,255,.07);
+color: #fff;
+font-size: 1.4rem;
+font-weight: 300;
+cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+transition: background .15s, transform .1s;
+-webkit-tap-highlight-color: transparent;
+}
+.num-btn:active { transform: scale(.9); background: rgba(255,255,255,.2); }
+.num-btn:hover  { background: rgba(255,255,255,.14); }
+.num-btn.del-btn {
+font-size: 1rem;
+letter-spacing: .02em;
+}
+/* Empty spacer cell */
+.num-spacer { width: 4.2rem; height: 4.2rem; }
 
-    .slide[data-pos="prev"] { transform: translateX(-100%); opacity: 0; }
-    .slide[data-pos="curr"] { transform: translateX(0);     opacity: 1; }
-    .slide[data-pos="next"] { transform: translateX(100%);  opacity: 0; }
-    .slide[data-pos="off"]  { transform: translateX(200%);  opacity: 0; visibility: hidden; }
+#pw-error {
+color: rgba(255,80,80,.85);
+font-size: .72rem;
+letter-spacing: .1em;
+text-transform: uppercase;
+min-height: 1em;
+text-align: center;
+opacity: 0;
+transition: opacity .2s;
+}
+#pw-error.show { opacity: 1; }
 
-    /* ── Video ── */
-    .slide video {
-      width: 100%; height: 100%;
-      object-fit: contain;
-      display: block;
-      background: #000;
-    }
+/* ── Category picker screen ── */
+#picker {
+position: fixed; inset: 0;
+display: flex; flex-direction: column;
+align-items: center; justify-content: center;
+background: #000;
+z-index: 500;
+padding: 2rem 1.5rem;
+gap: 2rem;
+transition: opacity .4s ease;
+}
+#picker.gone { opacity: 0; pointer-events: none; }
 
-    /* ── Counter ── */
-    #counter {
-      position: fixed;
-      bottom: max(1.25rem, env(safe-area-inset-bottom, 1.25rem));
-      left: 50%; transform: translateX(-50%);
-      background: rgba(255,255,255,.13);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      color: #fff;
-      font-size: .75rem; letter-spacing: .1em;
-      padding: .3rem .8rem; border-radius: 999px;
-      pointer-events: none; z-index: 100;
-      opacity: 0; transition: opacity .5s ease;
-    }
-    #counter.show { opacity: 1; }
+#picker h1 {
+color: #fff;
+font-size: 1.4rem;
+font-weight: 300;
+letter-spacing: .3em;
+text-transform: uppercase;
+}
 
-    /* ── Swipe hint ── */
-    #hint {
-      position: fixed; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: .6rem;
-      pointer-events: none; z-index: 200;
-      opacity: 1; transition: opacity .7s ease;
-    }
-    #hint.gone { opacity: 0; }
-    #hint svg {
-      width: 2.2rem; height: 2.2rem;
-      stroke: rgba(255,255,255,.65); fill: none;
-      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
-      animation: sw 1.8s ease-in-out infinite;
-    }
-    #hint p {
-      color: rgba(255,255,255,.5);
-      font-size: .78rem; letter-spacing: .14em; text-transform: uppercase;
-    }
-    @keyframes sw {
-      0%,100% { transform: translateX(0); }
-      40%,60%  { transform: translateX(-1rem); }
-    }
+#cat-list {
+display: flex;
+flex-wrap: wrap;
+gap: .75rem;
+justify-content: center;
+max-width: 360px;
+overflow-y: auto;
+max-height: 70vh;
+padding: .25rem;
+}
 
-    /* ── Controls panel (speed + category) ── */
-    #controls {
-      position: fixed;
-      right: 1.2rem;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 400;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: .5rem;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .35s ease;
-    }
-    #controls.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
+.cat-btn {
+padding: .65rem 1.3rem;
+border-radius: 999px;
+border: 1px solid rgba(255,255,255,.25);
+background: rgba(255,255,255,.07);
+color: #fff;
+font-size: .85rem;
+letter-spacing: .1em;
+text-transform: uppercase;
+cursor: pointer;
+transition: background .2s, border-color .2s, transform .1s;
+-webkit-tap-highlight-color: transparent;
+}
+.cat-btn:active { transform: scale(.95); }
+.cat-btn:hover { background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.5); }
 
-    .ctrl-btn {
-      width: 2.6rem; height: 2.6rem;
-      border-radius: 50%;
-      border: none;
-      background: rgba(255,255,255,.12);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      color: #fff;
-      font-size: .68rem;
-      font-weight: 600;
-      letter-spacing: .02em;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background .15s, transform .1s;
-      -webkit-tap-highlight-color: transparent;
-      flex-shrink: 0;
-    }
-    .ctrl-btn:active { transform: scale(.9); }
-    .ctrl-btn.active {
-      background: rgba(255,255,255,.85);
-      color: #000;
-    }
+/* ── Stage ── */
+#stage {
+position: fixed; inset: 0;
+}
 
-    /* Divider between speed and category button */
-    .ctrl-divider {
-      width: 1.5rem;
-      height: 1px;
-      background: rgba(255,255,255,.2);
-      margin: .15rem 0;
-    }
+/* ── Slides ── */
+.slide {
+position: absolute; inset: 0;
+display: flex; align-items: center; justify-content: center;
+background: #000;
+will-change: transform, opacity;
+transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+.slide.no-transition { transition: none !important; }
 
-    /* Category button at bottom of controls */
-    #cat-switch-btn {
-      font-size: .55rem;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      line-height: 1.2;
-      text-align: center;
-    }
+.slide[data-pos="prev"] { transform: translateX(-100%); opacity: 0; }
+.slide[data-pos="curr"] { transform: translateX(0); opacity: 1; }
+.slide[data-pos="next"] { transform: translateX(100%); opacity: 0; }
+.slide[data-pos="off"] { transform: translateX(200%); opacity: 0; visibility: hidden; }
 
-    /* ── Fullscreen prompt ── */
-    #fs-prompt {
-      position: fixed; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 1.4rem;
-      background: #000;
-      z-index: 9999;
-      cursor: pointer;
-      transition: opacity .4s ease;
-    }
-    #fs-prompt.gone { opacity: 0; pointer-events: none; }
-    #fs-prompt svg {
-      width: 3.5rem; height: 3.5rem;
-      stroke: #fff; fill: none;
-      stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
-    }
-    #fs-prompt p {
-      color: #fff;
-      font-size: 1rem; letter-spacing: .14em; text-transform: uppercase;
-    }
-    #fs-prompt small {
-      color: rgba(255,255,255,.4);
-      font-size: .75rem; letter-spacing: .06em;
-      text-align: center; padding: 0 2rem;
-    }
-  </style>
+/* ── Video ── */
+.slide video {
+width: 100%; height: 100%;
+object-fit: contain;
+display: block;
+background: #000;
+}
+
+/* ── Counter ── */
+#counter {
+position: fixed;
+bottom: max(1.25rem, env(safe-area-inset-bottom, 1.25rem));
+left: 50%; transform: translateX(-50%);
+background: rgba(255,255,255,.13);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+color: #fff;
+font-size: .75rem; letter-spacing: .1em;
+padding: .3rem .8rem; border-radius: 999px;
+pointer-events: none; z-index: 100;
+opacity: 0; transition: opacity .5s ease;
+}
+#counter.show { opacity: 1; }
+
+/* ── Swipe hint ── */
+#hint {
+position: fixed; inset: 0;
+display: flex; flex-direction: column;
+align-items: center; justify-content: center; gap: .6rem;
+pointer-events: none; z-index: 200;
+opacity: 1; transition: opacity .7s ease;
+}
+#hint.gone { opacity: 0; }
+#hint svg {
+width: 2.2rem; height: 2.2rem;
+stroke: rgba(255,255,255,.65); fill: none;
+stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+animation: sw 1.8s ease-in-out infinite;
+}
+#hint p {
+color: rgba(255,255,255,.5);
+font-size: .78rem; letter-spacing: .14em; text-transform: uppercase;
+}
+@keyframes sw {
+0%,100% { transform: translateX(0); }
+40%,60% { transform: translateX(-1rem); }
+}
+
+/* ── Controls panel (speed + category) ── */
+#controls {
+position: fixed;
+right: 1.2rem;
+top: 50%;
+transform: translateY(-50%);
+z-index: 400;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: .5rem;
+opacity: 0;
+pointer-events: none;
+transition: opacity .35s ease;
+}
+#controls.visible {
+opacity: 1;
+pointer-events: auto;
+}
+
+.ctrl-btn {
+width: 2.6rem; height: 2.6rem;
+border-radius: 50%;
+border: none;
+background: rgba(255,255,255,.12);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+color: #fff;
+font-size: .68rem;
+font-weight: 600;
+letter-spacing: .02em;
+cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+transition: background .15s, transform .1s;
+-webkit-tap-highlight-color: transparent;
+flex-shrink: 0;
+}
+.ctrl-btn:active { transform: scale(.9); }
+.ctrl-btn.active {
+background: rgba(255,255,255,.85);
+color: #000;
+}
+
+/* Divider between speed and category button */
+.ctrl-divider {
+width: 1.5rem;
+height: 1px;
+background: rgba(255,255,255,.2);
+margin: .15rem 0;
+}
+
+/* Category button at bottom of controls */
+#cat-switch-btn {
+font-size: .55rem;
+letter-spacing: .04em;
+text-transform: uppercase;
+line-height: 1.2;
+text-align: center;
+}
+
+/* ── Fullscreen prompt ── */
+#fs-prompt {
+position: fixed; inset: 0;
+display: flex; flex-direction: column;
+align-items: center; justify-content: center; gap: 1.4rem;
+background: #000;
+z-index: 9999;
+cursor: pointer;
+transition: opacity .4s ease;
+}
+#fs-prompt.gone { opacity: 0; pointer-events: none; }
+#fs-prompt svg {
+width: 3.5rem; height: 3.5rem;
+stroke: #fff; fill: none;
+stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+}
+#fs-prompt p {
+color: #fff;
+font-size: 1rem; letter-spacing: .14em; text-transform: uppercase;
+}
+#fs-prompt small {
+color: rgba(255,255,255,.4);
+font-size: .75rem; letter-spacing: .06em;
+text-align: center; padding: 0 2rem;
+}
+</style>
 </head>
 <body>
 
 <a class="skip" href="#stage">Skip to animations</a>
 <div id="live" aria-live="polite" aria-atomic="true" role="status"></div>
 
+<!-- Password gate (shown first, above everything) -->
+<div id="pw-gate" role="dialog" aria-modal="true" aria-label="Enter passcode">
+  <h1>Mesmerize</h1>
+  <p>Enter passcode</p>
+  <div id="pw-dots">
+    <div class="pw-dot" id="d0"></div>
+    <div class="pw-dot" id="d1"></div>
+    <div class="pw-dot" id="d2"></div>
+    <div class="pw-dot" id="d3"></div>
+  </div>
+  <div id="numpad" role="group" aria-label="Number pad">
+    <button class="num-btn" data-digit="1" aria-label="1">1</button>
+    <button class="num-btn" data-digit="2" aria-label="2">2</button>
+    <button class="num-btn" data-digit="3" aria-label="3">3</button>
+    <button class="num-btn" data-digit="4" aria-label="4">4</button>
+    <button class="num-btn" data-digit="5" aria-label="5">5</button>
+    <button class="num-btn" data-digit="6" aria-label="6">6</button>
+    <button class="num-btn" data-digit="7" aria-label="7">7</button>
+    <button class="num-btn" data-digit="8" aria-label="8">8</button>
+    <button class="num-btn" data-digit="9" aria-label="9">9</button>
+    <div class="num-spacer"></div>
+    <button class="num-btn" data-digit="0" aria-label="0">0</button>
+    <button class="num-btn del-btn" id="pw-del" aria-label="Delete">&#9003;</button>
+  </div>
+  <div id="pw-error" aria-live="polite"></div>
+</div>
+
 <!-- Fullscreen entry prompt -->
 <div id="fs-prompt" role="button" tabindex="0" aria-label="Tap to enter fullscreen">
-  <svg viewBox="0 0 24 24">
-    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
-  </svg>
-  <p>Tap to enter</p>
-  <small>or add to home screen for best experience</small>
+<svg viewBox="0 0 24 24">
+<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+</svg>
+<p>Tap to enter</p>
+<small>or add to home screen for best experience</small>
 </div>
 
 <!-- Category picker -->
 <div id="picker" aria-label="Choose a category" role="dialog">
-  <h1>Mesmerize</h1>
-  <div id="cat-list" role="list"></div>
+<h1>Mesmerize</h1>
+<div id="cat-list" role="list"></div>
 </div>
 
 <!-- Main stage -->
@@ -283,242 +406,309 @@
 
 <!-- Swipe hint -->
 <div id="hint" role="presentation" aria-hidden="true">
-  <svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg>
-  <p>Swipe to explore</p>
+<svg viewBox="0 0 24 24"><path d="M5 12h14M14 7l5 5-5 5"/></svg>
+<p>Swipe to explore</p>
 </div>
 
 <!-- Controls: speed + category switcher -->
 <div id="controls" role="group" aria-label="Playback controls"></div>
 
 <script>
+// ── Password gate ──────────────────────────────────────────────────
+(function () {
+  var CORRECT = '7788';
+  var gate    = document.getElementById('pw-gate');
+  var dots    = [document.getElementById('d0'), document.getElementById('d1'),
+                 document.getElementById('d2'), document.getElementById('d3')];
+  var dotsWrap = document.getElementById('pw-dots');
+  var errEl   = document.getElementById('pw-error');
+  var code = '';
+
+  function updateDots() {
+    dots.forEach(function(d, i) { d.classList.toggle('filled', i < code.length); });
+  }
+
+  function triggerError() {
+    errEl.textContent = 'Incorrect passcode';
+    errEl.classList.add('show');
+    dotsWrap.classList.add('shake');
+    dotsWrap.addEventListener('animationend', function() {
+      dotsWrap.classList.remove('shake');
+    }, { once: true });
+    setTimeout(function() {
+      errEl.classList.remove('show');
+      errEl.textContent = '';
+    }, 1800);
+  }
+
+  function submit() {
+    if (code === CORRECT) {
+      gate.classList.add('gone');
+      setTimeout(function() { if (gate.parentNode) gate.parentNode.removeChild(gate); }, 600);
+    } else {
+      code = '';
+      updateDots();
+      triggerError();
+    }
+  }
+
+  function pressDigit(d) {
+    if (code.length >= 4) return;
+    code += d;
+    updateDots();
+    if (code.length === 4) setTimeout(submit, 120);
+  }
+
+  function pressDelete() {
+    if (code.length === 0) return;
+    code = code.slice(0, -1);
+    updateDots();
+  }
+
+  // Numpad clicks
+  document.querySelectorAll('#numpad .num-btn[data-digit]').forEach(function(btn) {
+    btn.addEventListener('click', function() { pressDigit(btn.dataset.digit); });
+  });
+  document.getElementById('pw-del').addEventListener('click', pressDelete);
+
+  // Physical keyboard support
+  window.addEventListener('keydown', function(e) {
+    if (!document.getElementById('pw-gate')) return;
+    if (e.key >= '0' && e.key <= '9') pressDigit(e.key);
+    if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); pressDelete(); }
+    if (e.key === 'Enter' && code.length === 4) submit();
+  });
+})();
+
 // ── Load clips.json then boot ──────────────────────────────────────
-const stage    = document.getElementById('stage');
-const counter  = document.getElementById('counter');
-const live     = document.getElementById('live');
-const hint     = document.getElementById('hint');
-const picker   = document.getElementById('picker');
-const catList  = document.getElementById('cat-list');
+const stage = document.getElementById('stage');
+const counter = document.getElementById('counter');
+const live = document.getElementById('live');
+const hint = document.getElementById('hint');
+const picker = document.getElementById('picker');
+const catList = document.getElementById('cat-list');
 const controls = document.getElementById('controls');
 
 fetch('clips.json')
-  .then(r => r.json())
-  .then(data => init(data))
-  .catch(() => init([]));
+.then(r => r.json())
+.then(data => init(data))
+.catch(() => init([]));
 
 function init(data) {
-  // Support both old format (flat array) and new (array of categories)
-  let categories;
-  if (data.length && data[0].clips) {
-    categories = data;
-  } else {
-    categories = [{ name: 'All', clips: data }];
-  }
+// Support both old format (flat array) and new (array of categories)
+let categories;
+if (data.length && data[0].clips) {
+categories = data;
+} else {
+categories = [{ name: 'All', clips: data }];
+}
 
-  if (categories.length === 0) {
-    picker.querySelector('h1').textContent = 'No clips found';
-    return;
-  }
+if (categories.length === 0) {
+picker.querySelector('h1').textContent = 'No clips found';
+return;
+}
 
-  // ── Build category picker ────────────────────────────────────────
-  catList.innerHTML = '';
-  categories.forEach((cat, i) => {
-    const btn = document.createElement('button');
-    btn.className = 'cat-btn';
-    btn.textContent = cat.name;
-    btn.setAttribute('role', 'listitem');
-    btn.setAttribute('aria-label', `${cat.name}, ${cat.clips.length} clip${cat.clips.length !== 1 ? 's' : ''}`);
-    btn.addEventListener('click', () => {
-      hidePicker();
-      boot(cat, categories);
-    });
-    catList.appendChild(btn);
-  });
+// ── Build category picker ────────────────────────────────────────
+catList.innerHTML = '';
+categories.forEach((cat, i) => {
+const btn = document.createElement('button');
+btn.className = 'cat-btn';
+btn.textContent = cat.name;
+btn.setAttribute('role', 'listitem');
+btn.setAttribute('aria-label', `${cat.name}, ${cat.clips.length} clip${cat.clips.length !== 1 ? 's' : ''}`);
+btn.addEventListener('click', () => {
+hidePicker();
+boot(cat, categories);
+});
+catList.appendChild(btn);
+});
 
-  // Auto-select if only one category
-  if (categories.length === 1) {
-    hidePicker();
-    boot(categories[0], categories);
-  }
+// Auto-select if only one category
+if (categories.length === 1) {
+hidePicker();
+boot(categories[0], categories);
+}
 }
 
 function hidePicker() {
-  picker.classList.add('gone');
-  setTimeout(() => { picker.style.display = 'none'; }, 450);
+picker.classList.add('gone');
+setTimeout(() => { picker.style.display = 'none'; }, 450);
 }
 
 function showPicker() {
-  picker.style.display = 'flex';
-  requestAnimationFrame(() => picker.classList.remove('gone'));
-  hideControls();
-  // Pause current video
-  document.querySelectorAll('video').forEach(v => v.pause());
+picker.style.display = 'flex';
+requestAnimationFrame(() => picker.classList.remove('gone'));
+hideControls();
+// Pause current video
+document.querySelectorAll('video').forEach(v => v.pause());
 }
 
 // ── Boot a category ────────────────────────────────────────────────
 function boot(cat, allCategories) {
-  // Clear previous slides
-  stage.innerHTML = '';
+// Clear previous slides
+stage.innerHTML = '';
 
-  const CLIPS = cat.clips;
-  const N     = CLIPS.length;
-  let   cur   = 0;
+const CLIPS = cat.clips;
+const N = CLIPS.length;
+let cur = 0;
 
-  const slides = CLIPS.map((clip, i) => {
-    const el  = document.createElement('div');
-    el.className = 'slide no-transition';
-    el.setAttribute('role', 'region');
-    el.setAttribute('aria-label', `${clip.label}, ${i + 1} of ${N}`);
+const slides = CLIPS.map((clip, i) => {
+const el = document.createElement('div');
+el.className = 'slide no-transition';
+el.setAttribute('role', 'region');
+el.setAttribute('aria-label', `${clip.label}, ${i + 1} of ${N}`);
 
-    const vid = document.createElement('video');
-    vid.loop        = true;
-    vid.muted       = true;
-    vid.playsInline = true;
-    vid.preload     = i === 0 ? 'auto' : 'metadata';
-    vid.setAttribute('aria-label', clip.label);
+const vid = document.createElement('video');
+vid.loop = true;
+vid.muted = true;
+vid.playsInline = true;
+vid.preload = i === 0 ? 'auto' : 'metadata';
+vid.setAttribute('aria-label', clip.label);
 
-    const src = document.createElement('source');
-    src.src  = clip.src;
-    src.type = 'video/mp4';
-    vid.appendChild(src);
-    el.appendChild(vid);
-    stage.appendChild(el);
-    return { el, vid };
-  });
+const src = document.createElement('source');
+src.src = clip.src;
+src.type = 'video/mp4';
+vid.appendChild(src);
+el.appendChild(vid);
+stage.appendChild(el);
+return { el, vid };
+});
 
-  // ── Position helpers ─────────────────────────────────────────────
-  function posName(i) {
-    if (i === cur)     return 'curr';
-    if (i === cur - 1) return 'prev';
-    if (i === cur + 1) return 'next';
-    return 'off';
-  }
+// ── Position helpers ─────────────────────────────────────────────
+function posName(i) {
+if (i === cur) return 'curr';
+if (i === cur - 1) return 'prev';
+if (i === cur + 1) return 'next';
+return 'off';
+}
 
-  function layout(animate) {
-    slides.forEach(({ el }, i) => {
-      if (!animate) el.classList.add('no-transition');
-      else          el.classList.remove('no-transition');
-      el.dataset.pos = posName(i);
-      el.setAttribute('aria-hidden', i === cur ? 'false' : 'true');
-    });
-    if (!animate) stage.getBoundingClientRect();
-  }
+function layout(animate) {
+slides.forEach(({ el }, i) => {
+if (!animate) el.classList.add('no-transition');
+else el.classList.remove('no-transition');
+el.dataset.pos = posName(i);
+el.setAttribute('aria-hidden', i === cur ? 'false' : 'true');
+});
+if (!animate) stage.getBoundingClientRect();
+}
 
-  // ── Playback ──────────────────────────────────────────────────────
-  function play(i) {
-    slides.forEach(({ vid }, j) => {
-      if (j === i) {
-        vid.currentTime = 0;
-        vid.playbackRate = currentSpeed;
-        vid.play().catch(() => {});
-      } else {
-        vid.pause();
-      }
-    });
-  }
+// ── Playback ──────────────────────────────────────────────────────
+function play(i) {
+slides.forEach(({ vid }, j) => {
+if (j === i) {
+vid.currentTime = 0;
+vid.playbackRate = currentSpeed;
+vid.play().catch(() => {});
+} else {
+vid.pause();
+}
+});
+}
 
-  // ── Navigate ──────────────────────────────────────────────────────
-  let counterTimer;
+// ── Navigate ──────────────────────────────────────────────────────
+let counterTimer;
 
-  function goTo(i, announce = true) {
-    if (i < 0 || i >= N) return;
-    cur = i;
-    layout(true);
-    play(cur);
-    counter.textContent = `${cur + 1} / ${N}`;
-    counter.classList.add('show');
-    clearTimeout(counterTimer);
-    counterTimer = setTimeout(() => counter.classList.remove('show'), 2400);
-    if (announce) live.textContent = `${CLIPS[cur].label}, ${cur + 1} of ${N}`;
-  }
+function goTo(i, announce = true) {
+if (i < 0 || i >= N) return;
+cur = i;
+layout(true);
+play(cur);
+counter.textContent = `${cur + 1} / ${N}`;
+counter.classList.add('show');
+clearTimeout(counterTimer);
+counterTimer = setTimeout(() => counter.classList.remove('show'), 2400);
+if (announce) live.textContent = `${CLIPS[cur].label}, ${cur + 1} of ${N}`;
+}
 
-  const next = () => goTo(cur + 1);
-  const prev = () => goTo(cur - 1);
+const next = () => goTo(cur + 1);
+const prev = () => goTo(cur - 1);
 
-  // ── Drag / swipe ──────────────────────────────────────────────────
-  const THRESH_PX = 55;
-  const THRESH_V  = 0.35;
+// ── Drag / swipe ──────────────────────────────────────────────────
+const THRESH_PX = 55;
+const THRESH_V = 0.35;
 
-  let dragging = false, startX = 0, dx = 0, t0 = 0;
-  let tapMoved = false;
+let dragging = false, startX = 0, dx = 0, t0 = 0;
+let tapMoved = false;
 
-  function dragStart(x) {
-    dragging = true; startX = x; dx = 0; t0 = Date.now(); tapMoved = false;
-    slides.forEach(({ el }) => el.classList.add('no-transition'));
-  }
+function dragStart(x) {
+dragging = true; startX = x; dx = 0; t0 = Date.now(); tapMoved = false;
+slides.forEach(({ el }) => el.classList.add('no-transition'));
+}
 
-  function dragMove(x) {
-    if (!dragging) return;
-    tapMoved = true;
-    dx = x - startX;
-    slides.forEach(({ el }, i) => {
-      if (i === cur)          el.style.transform = `translateX(${dx}px)`;
-      else if (i === cur - 1) el.style.transform = `translateX(calc(-100% + ${dx}px))`;
-      else if (i === cur + 1) el.style.transform = `translateX(calc(100% + ${dx}px))`;
-    });
-    const adj = dx < 0 ? slides[cur + 1] : slides[cur - 1];
-    if (adj) adj.el.style.opacity = Math.min(Math.abs(dx) / 100, 1);
-  }
+function dragMove(x) {
+if (!dragging) return;
+tapMoved = true;
+dx = x - startX;
+slides.forEach(({ el }, i) => {
+if (i === cur) el.style.transform = `translateX(${dx}px)`;
+else if (i === cur - 1) el.style.transform = `translateX(calc(-100% + ${dx}px))`;
+else if (i === cur + 1) el.style.transform = `translateX(calc(100% + ${dx}px))`;
+});
+const adj = dx < 0 ? slides[cur + 1] : slides[cur - 1];
+if (adj) adj.el.style.opacity = Math.min(Math.abs(dx) / 100, 1);
+}
 
-  function dragEnd() {
-    if (!dragging) return;
-    dragging = false;
-    slides.forEach(({ el }) => { el.style.transform = ''; el.style.opacity = ''; });
-    const v      = Math.abs(dx) / (Date.now() - t0);
-    const commit = Math.abs(dx) > THRESH_PX || v > THRESH_V;
-    if      (commit && dx < 0) next();
-    else if (commit && dx > 0) prev();
-    else layout(true);
-  }
+function dragEnd() {
+if (!dragging) return;
+dragging = false;
+slides.forEach(({ el }) => { el.style.transform = ''; el.style.opacity = ''; });
+const v = Math.abs(dx) / (Date.now() - t0);
+const commit = Math.abs(dx) > THRESH_PX || v > THRESH_V;
+if (commit && dx < 0) next();
+else if (commit && dx > 0) prev();
+else layout(true);
+}
 
-  stage.addEventListener('touchstart', e => {
-    if (e.touches.length === 1) dragStart(e.touches[0].clientX);
-  }, { passive: true });
-  stage.addEventListener('touchmove',  e => dragMove(e.touches[0].clientX), { passive: true });
-  stage.addEventListener('touchend',   () => {
-    if (!tapMoved) showControls();
-    dragEnd();
-  });
-  stage.addEventListener('touchcancel', dragEnd);
+stage.addEventListener('touchstart', e => {
+if (e.touches.length === 1) dragStart(e.touches[0].clientX);
+}, { passive: true });
+stage.addEventListener('touchmove', e => dragMove(e.touches[0].clientX), { passive: true });
+stage.addEventListener('touchend', () => {
+if (!tapMoved) showControls();
+dragEnd();
+});
+stage.addEventListener('touchcancel', dragEnd);
 
-  stage.addEventListener('mousedown', e => { e.preventDefault(); dragStart(e.clientX); });
-  window.addEventListener('mousemove', e => { if (dragging) dragMove(e.clientX); });
-  window.addEventListener('mouseup',   () => { if (dragging) { if (!tapMoved) showControls(); dragEnd(); } });
-  stage.addEventListener('click', () => { if (!tapMoved) showControls(); });
+stage.addEventListener('mousedown', e => { e.preventDefault(); dragStart(e.clientX); });
+window.addEventListener('mousemove', e => { if (dragging) dragMove(e.clientX); });
+window.addEventListener('mouseup', () => { if (dragging) { if (!tapMoved) showControls(); dragEnd(); } });
+stage.addEventListener('click', () => { if (!tapMoved) showControls(); });
 
-  // ── Keyboard ──────────────────────────────────────────────────────
-  window.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); next(); }
-    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { e.preventDefault(); prev(); }
-    if (e.key === 'Home') { e.preventDefault(); goTo(0); }
-    if (e.key === 'End')  { e.preventDefault(); goTo(N - 1); }
-    const idx = SPEEDS.indexOf(currentSpeed);
-    if ((e.key === '+' || e.key === '=') && idx > 0)                { setSpeed(SPEEDS[idx - 1]); showControls(); }
-    if ((e.key === '-' || e.key === '_') && idx < SPEEDS.length - 1) { setSpeed(SPEEDS[idx + 1]); showControls(); }
-  });
+// ── Keyboard ──────────────────────────────────────────────────────
+window.addEventListener('keydown', e => {
+if (document.getElementById('pw-gate')) return; // gate still visible
+if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); next(); }
+if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
+if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+if (e.key === 'End') { e.preventDefault(); goTo(N - 1); }
+const idx = SPEEDS.indexOf(currentSpeed);
+if ((e.key === '+' || e.key === '=') && idx > 0) { setSpeed(SPEEDS[idx - 1]); showControls(); }
+if ((e.key === '-' || e.key === '_') && idx < SPEEDS.length - 1) { setSpeed(SPEEDS[idx + 1]); showControls(); }
+});
 
-  // ── Visibility ────────────────────────────────────────────────────
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) slides[cur]?.vid.pause();
-    else                 slides[cur]?.vid.play().catch(() => {});
-  });
+// ── Visibility ────────────────────────────────────────────────────
+document.addEventListener('visibilitychange', () => {
+if (document.hidden) slides[cur]?.vid.pause();
+else slides[cur]?.vid.play().catch(() => {});
+});
 
-  // ── Init ──────────────────────────────────────────────────────────
-  layout(false);
-  play(0);
-  goTo(0, false);
+// ── Init ──────────────────────────────────────────────────────────
+layout(false);
+play(0);
+goTo(0, false);
 
-  // Swipe hint once per session
-  if (sessionStorage.getItem('mz-hint')) {
-    hint.classList.add('gone');
-  } else {
-    setTimeout(() => {
-      hint.classList.add('gone');
-      sessionStorage.setItem('mz-hint', '1');
-    }, 2600);
-  }
+// Swipe hint once per session
+if (sessionStorage.getItem('mz-hint')) {
+hint.classList.add('gone');
+} else {
+setTimeout(() => {
+hint.classList.add('gone');
+sessionStorage.setItem('mz-hint', '1');
+}, 2600);
+}
 
-  // ── Build controls panel ──────────────────────────────────────────
-  buildControls(allCategories, cat);
+// ── Build controls panel ──────────────────────────────────────────
+buildControls(allCategories, cat);
 }
 
 // ── Speed state (persists across category switches) ─────────────────
@@ -528,91 +718,90 @@ let controlsTimer;
 let speedBtns = [];
 
 function setSpeed(s) {
-  currentSpeed = s;
-  sessionStorage.setItem('mz-speed', s);
-  document.querySelectorAll('video').forEach(v => { v.playbackRate = s; });
-  speedBtns.forEach(b => b.classList.toggle('active', parseFloat(b.dataset.speed) === s));
-  live.textContent = `Speed: ${s.toFixed(1)}x`;
+currentSpeed = s;
+sessionStorage.setItem('mz-speed', s);
+document.querySelectorAll('video').forEach(v => { v.playbackRate = s; });
+speedBtns.forEach(b => b.classList.toggle('active', parseFloat(b.dataset.speed) === s));
+live.textContent = `Speed: ${s.toFixed(1)}x`;
 }
 
 function showControls() {
-  controls.classList.add('visible');
-  resetControlsTimer();
+controls.classList.add('visible');
+resetControlsTimer();
 }
 
 function hideControls() {
-  controls.classList.remove('visible');
-  clearTimeout(controlsTimer);
+controls.classList.remove('visible');
+clearTimeout(controlsTimer);
 }
 
 function resetControlsTimer() {
-  clearTimeout(controlsTimer);
-  controlsTimer = setTimeout(hideControls, 2500);
+clearTimeout(controlsTimer);
+controlsTimer = setTimeout(hideControls, 2500);
 }
 
 function buildControls(allCategories, currentCat) {
-  controls.innerHTML = '';
-  speedBtns = [];
+controls.innerHTML = '';
+speedBtns = [];
 
-  // Speed buttons
-  SPEEDS.forEach(s => {
-    const btn = document.createElement('button');
-    btn.className  = 'ctrl-btn';
-    btn.textContent = s.toFixed(1) + 'x';
-    btn.setAttribute('aria-label', `${s.toFixed(1)}x speed`);
-    btn.dataset.speed = s;
-    btn.classList.toggle('active', s === currentSpeed);
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      setSpeed(s);
-      resetControlsTimer();
-    });
-    controls.appendChild(btn);
-    speedBtns.push(btn);
-  });
+// Speed buttons
+SPEEDS.forEach(s => {
+const btn = document.createElement('button');
+btn.className = 'ctrl-btn';
+btn.textContent = s.toFixed(1) + 'x';
+btn.setAttribute('aria-label', `${s.toFixed(1)}x speed`);
+btn.dataset.speed = s;
+btn.classList.toggle('active', s === currentSpeed);
+btn.addEventListener('click', e => {
+e.stopPropagation();
+setSpeed(s);
+resetControlsTimer();
+});
+controls.appendChild(btn);
+speedBtns.push(btn);
+});
 
-  // Only show category switcher if there's more than one category
-  if (allCategories.length > 1) {
-    const divider = document.createElement('div');
-    divider.className = 'ctrl-divider';
-    controls.appendChild(divider);
+// Only show category switcher if there's more than one category
+if (allCategories.length > 1) {
+const divider = document.createElement('div');
+divider.className = 'ctrl-divider';
+controls.appendChild(divider);
 
-    const catBtn = document.createElement('button');
-    catBtn.className = 'ctrl-btn';
-    catBtn.id = 'cat-switch-btn';
-    catBtn.setAttribute('aria-label', 'Switch category');
-    // Grid icon
-    catBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`;
-    catBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      showPicker();
-    });
-    controls.appendChild(catBtn);
-  }
+const catBtn = document.createElement('button');
+catBtn.className = 'ctrl-btn';
+catBtn.id = 'cat-switch-btn';
+catBtn.setAttribute('aria-label', 'Switch category');
+catBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`;
+catBtn.addEventListener('click', e => {
+e.stopPropagation();
+showPicker();
+});
+controls.appendChild(catBtn);
+}
 
-  // Apply saved speed
-  setSpeed(currentSpeed);
+// Apply saved speed
+setSpeed(currentSpeed);
 }
 
 // ── Fullscreen prompt ─────────────────────────────────────────────
 const fsPrompt = document.getElementById('fs-prompt');
 
 function enterFullscreen() {
-  const el  = document.documentElement;
-  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
-  if (req) req.call(el).catch(() => {});
-  fsPrompt.classList.add('gone');
-  setTimeout(() => fsPrompt.remove(), 500);
+const el = document.documentElement;
+const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+if (req) req.call(el).catch(() => {});
+fsPrompt.classList.add('gone');
+setTimeout(() => fsPrompt.remove(), 500);
 }
 
 if (document.fullscreenElement || window.navigator.standalone ||
-    window.matchMedia('(display-mode: fullscreen)').matches ||
-    window.matchMedia('(display-mode: standalone)').matches) {
-  fsPrompt.classList.add('gone');
-  setTimeout(() => fsPrompt.remove(), 100);
+window.matchMedia('(display-mode: fullscreen)').matches ||
+window.matchMedia('(display-mode: standalone)').matches) {
+fsPrompt.classList.add('gone');
+setTimeout(() => fsPrompt.remove(), 100);
 } else {
-  fsPrompt.addEventListener('click', enterFullscreen);
-  fsPrompt.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') enterFullscreen(); });
+fsPrompt.addEventListener('click', enterFullscreen);
+fsPrompt.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') enterFullscreen(); });
 }
 
 // ── Reduced motion ────────────────────────────────────────────────
@@ -622,17 +811,14 @@ applyMotion(mq);
 mq.addEventListener('change', applyMotion);
 
 // ── Audio session: ambient so YouTube/music keeps playing ─────────
-// Declares this page as a non-interrupting audio consumer.
-// Muted videos normally don't affect other audio, but this makes it
-// explicit - even if a clip has audio, it will never duck other apps.
 if ('audioSession' in navigator) {
-  navigator.audioSession.type = 'ambient';
+navigator.audioSession.type = 'ambient';
 }
 
 // ── Kill old service worker ───────────────────────────────────────
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
 }
 </script>
 </body>
